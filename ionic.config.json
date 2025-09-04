@@ -1,0 +1,7 @@
+{
+  "name": "vue_wz",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
