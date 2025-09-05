@@ -1,0 +1,11 @@
+<template>
+  <footer class="bg-light py-3 mt-5">
+    <div class="container text-center">
+      <small>&copy; {{ new Date().getFullYear() }} MyNews. All rights reserved.</small>
+    </div>
+  </footer>
+</template>
+
+<script>
+export default {}
+</script>
