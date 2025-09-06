@@ -1,22 +1,31 @@
 <template>
-  <div class="col-md-6 offset-md-3">
-    <h3>Login</h3>
-    <form @submit.prevent="submit">
-      <div class="mb-3">
-        <label class="form-label">username</label>
-        <input v-model="username" class="form-control" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input v-model="password" type="password" class="form-control" required />
-      </div>
-      <div class="d-flex justify-content-between align-items-center">
-        <button class="btn btn-primary" :disabled="loading">Login</button>
-        <router-link to="/">Kembali</router-link>
-        <router-link to="/register">Register</router-link>
-      </div>
-    </form>
-    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+  <div class="content">
+    <div class="col-md-6 offset-md-3">
+      <h3>Login</h3>
+      <form @submit.prevent="submit">
+        <div class="mb-3">
+          <label class="form-label">username</label>
+          <input v-model="username" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input v-model="password" type="password" class="form-control" required />
+        </div>
+        <div class="mb-3 row">
+          <div class="col-6">
+            <p>Atau belum punya akun?</p>
+          </div>
+          <div class="col-6 text-end">
+            <router-link to="/register" class="register">Register</router-link>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <button class="btn btn-primary" :disabled="loading">Login</button>
+          
+        </div>
+      </form>
+      <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+    </div>
   </div>
 </template>
 

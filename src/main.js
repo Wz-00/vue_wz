@@ -10,6 +10,8 @@ import '@ionic/vue/css/core.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 /* Bootstrap JS (bundle includes modal) */
 import 'bootstrap/dist/js/bootstrap.bundle'
+// Css Layout
+import '@/assets/css/news-layout.css'
 
 const app = createApp(App)
 const head = createHead()

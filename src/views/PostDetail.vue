@@ -4,9 +4,10 @@
 
     <div v-else-if="post">
       <h1>{{ post.title }}</h1>
-      <p class="text-muted">oleh {{ post.author?.name }} • {{ formatDate(post.published_at || post.created_at) }}</p>
-      <img v-if="post.featured_image" :src="absoluteMediaUrl(post.featured_image)" class="img-fluid mb-3" />
+      <p class="text-white opacity-75">oleh {{ post.author?.name }} • {{ formatDate(post.published_at || post.created_at) }}</p>
+      <img v-if="post.featured_image" :src="absoluteMediaUrl(post.featured_image)" class="img-fluid mb-3 mx-auto d-block" />
       <div v-html="post.content"></div>
+      
     </div>
 
     <div v-else class="alert alert-warning">Artikel tidak ditemukan.</div>

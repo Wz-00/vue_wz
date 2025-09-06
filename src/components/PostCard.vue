@@ -1,47 +1,30 @@
 <template>
-  <div class="card mb-3">
-    <div v-if="imageUrl" class="row g-0">
-      <div class="col-md-4">
-        <!-- gunakan img biasa; jika pakai Ionic dan ingin lazy-loading, bisa ganti ke <ion-img> -->
-        <img
-          :src="imageUrl"
-          :alt="post.title || 'featured image'"
-          class="img-fluid rounded-start"
-          style="object-fit: cover; height: 180px; width: 100%;"
-          loading="lazy"
-          crossorigin="anonymous"
-        />
-      </div>
-
-      <div class="col-md-8">
-        <div class="card-body">
-          <h5 class="card-title">
-            <router-link :to="{ name: 'PostDetail', params: { slug: post.slug } }">
-              {{ post.title }}
-            </router-link>
-          </h5>
-          <p class="card-text" v-html="post.excerpt"></p>
-          <p class="card-text">
-            <small class="text-muted">
-              by {{ post.author?.name || 'Unknown' }} • {{ formatDate(post.published_at || post.created_at) }}
-            </small>
-          </p>
+  <div>
+    <!-- HEADLINE (image top, title below) -->
+    <div v-if="variant === 'headline-stacked'" class="headline-block">
+      <router-link :to="postLink" style="text-decoration:none;">
+        <img :src="imageUrl" :alt="post.title || 'headline image'" loading="lazy" crossorigin="anonymous" />
+      </router-link>
+      <div class="headline-caption">
+        <router-link :to="postLink" class="headline-title">{{ post.title }}</router-link>
+        <div class="text-white" style="font-size:12px; margin-top:6px;">
+          {{ post.category?.name || '' }} • {{ formatDate(post.published_at || post.created_at) }}
         </div>
       </div>
     </div>
 
-    <div v-else class="card-body">
-      <h5 class="card-title">
-        <router-link :to="{ name: 'PostDetail', params: { slug: post.slug } }">
-          {{ post.title }}
-        </router-link>
-      </h5>
-      <p class="card-text" v-html="post.excerpt"></p>
-      <p class="card-text">
-        <small class="text-muted">
-          by {{ post.author?.name || 'Unknown' }} • {{ formatDate(post.published_at || post.created_at) }}
-        </small>
-      </p>
+    <!-- STACKED SMALL (image top, title below) -->
+    <div v-else-if="variant === 'stacked'" class="news-tile">
+      <router-link :to="postLink" style="text-decoration:none;">
+        <img :src="imageUrl" class="tile-image" :alt="post.title || 'thumb'" loading="lazy" crossorigin="anonymous" />
+        <div class="tile-title">{{ post.title }}</div>
+        <div class="tile-meta">{{ post.category?.name || '' }}</div>
+      </router-link>
+    </div>
+
+    <!-- fallback: simple link -->
+    <div v-else>
+      <router-link :to="postLink" class="text-white">{{ post.title }}</router-link>
     </div>
   </div>
 </template>
@@ -50,36 +33,38 @@
 import { absoluteMediaUrl } from '@/services/api'
 
 export default {
-  props: { post: { type: Object, required: true } },
+  props: {
+    post: { type: Object, required: true },
+    variant: { type: String, default: 'stacked' } // 'stacked' | 'headline-stacked'
+  },
   computed: {
-    // compute satu imageUrl yang reliable
     imageUrl() {
-      const img = this.post.featured_image || this.post.image || this.post.media
-
-      if (!img) return null
-
-      // if already an object with full_url or path
+      const img = this.post.featured_image || this.post.image || (this.post.media && this.post.media.path) || this.post.media
+      if (!img) return '/placeholder-rect.png'
+      if (typeof img === 'string') {
+        if (/^https?:\/\//i.test(img)) return img
+        return absoluteMediaUrl(img)
+      }
       if (typeof img === 'object') {
-        if (img.full_url && /^https?:\/\//i.test(img.full_url)) return img.full_url
+        if (img.full_url) return img.full_url
         if (img.path) return absoluteMediaUrl(img.path)
         if (img.url) return absoluteMediaUrl(img.url)
       }
-
-      // if string and already absolute
-      if (typeof img === 'string') {
-        if (/^https?:\/\//i.test(img)) return img
-        // otherwise treat as relative path
-        return absoluteMediaUrl(img)
-      }
-
-      return null
+      return '/placeholder-rect.png'
+    },
+    postLink() {
+      return { name: 'PostDetail', params: { slug: this.post.slug } }
     }
   },
   methods: {
     formatDate(v) {
       if (!v) return ''
-      return new Date(v).toLocaleString()
+      return new Date(v).toLocaleDateString()
     }
   }
 }
 </script>
+
+<style scoped>
+/* Kosong: styling utama sudah di src/assets/css/news-layout.css */
+</style>

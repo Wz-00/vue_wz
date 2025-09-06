@@ -26,10 +26,6 @@
             <option :value="null">-- Pilih category (opsional) --</option>
             <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
-          <input v-model="newCategoryName" placeholder="Buat category baru..." class="form-control" />
-          <button type="button" class="btn btn-secondary" @click="createCategory" :disabled="creatingCategory">
-            {{ creatingCategory ? 'Membuat...' : 'Tambah' }}
-          </button>
         </div>
       </div>
 
@@ -98,12 +94,9 @@ export default {
       message: '',
       error: '',
 
-      // categories/tags
-      categories: [],
+      // tags & category
       tags: [],
       selectedCategoryId: null,
-      newCategoryName: '',
-      creatingCategory: false,
 
       selectedTags: [], // will hold tag ids (numbers) and we will append new tag names
       newTagName: '',
@@ -137,23 +130,6 @@ export default {
         this.tags = res.data.data || [];
       } catch (err) {
         console.error('fetchTags', err);
-      }
-    },
-    async createCategory() {
-      if (!this.newCategoryName || !this.newCategoryName.trim()) return;
-      this.creatingCategory = true;
-      try {
-        const res = await api.post('/categories', { name: this.newCategoryName.trim() });
-        const cat = res.data.data;
-        // add to list and select it
-        this.categories.push(cat);
-        this.selectedCategoryId = cat.id;
-        this.newCategoryName = '';
-      } catch (err) {
-        console.error('createCategory', err);
-        alert(err.response?.data?.message || 'Gagal membuat category');
-      } finally {
-        this.creatingCategory = false;
       }
     },
     async createTag() {

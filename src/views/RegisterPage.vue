@@ -1,29 +1,30 @@
 <template>
-  <div class="col-md-6 offset-md-3">
-    <h3>Login</h3>
-    <form @submit.prevent="submit">
+  <div class="content">
+    <div class="col-md-6 offset-md-3">
+      <h3>Login</h3>
+      <form @submit.prevent="submit">
+          <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input v-model="name" class="form-control" required />
+        </div>
         <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input v-model="name" class="form-control" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input v-model="username" class="form-control" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input v-model="password" type="password" class="form-control" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">email</label>
-        <input v-model="email" type="email" class="form-control" required />
-      </div>
-      <div class="d-flex justify-content-between align-items-center">
-        <button class="btn btn-primary" :disabled="loading">Register</button>
-        <router-link to="/">Kembali</router-link>
-      </div>
-    </form>
-    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+          <label class="form-label">Username</label>
+          <input v-model="username" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input v-model="password" type="password" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">email</label>
+          <input v-model="email" type="email" class="form-control" required />
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <button class="btn btn-primary" :disabled="loading">Register</button>
+        </div>
+      </form>
+      <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+    </div>
   </div>
 </template>
 

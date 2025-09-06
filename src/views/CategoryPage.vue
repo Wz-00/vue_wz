@@ -2,10 +2,9 @@
   <div class="content">
     <div class="news-container container">
       <div class="row">
-        <!-- kiri: headline + grid -->
         <div class="col-lg-8">
-          <div class="mb-4">
-            <PostCard v-if="headline" :post="headline" variant="headline-stacked" />
+          <div class="mb-4" v-if="category && category.posts && category.posts.length">
+            <PostCard :post="category.posts[0]" variant="headline-stacked" />
           </div>
 
           <div class="row g-3">
@@ -13,9 +12,13 @@
               <PostCard :post="p" variant="stacked" />
             </div>
           </div>
+
+          <div v-if="!category || !category.posts || category.posts.length === 0" class="text-white mt-3">
+            Belum ada artikel pada kategori ini.
+          </div>
         </div>
 
-        <!-- kanan: sidebar -->
+        <!-- kanan: sidebar populer (bisa reuse dari Home) -->
         <div class="col-lg-4">
           <aside class="sidebar-popular">
             <h4 class="mb-4"><strong>Artikel Terbaru</strong></h4>
@@ -31,10 +34,9 @@
         </div>
       </div>
 
-      <!-- sorotan -->
-      <div class="sorotan-section">
-        <h4 class="sorotan-title">Sorotan</h4>
-
+      <!-- sorotan: tampilkan category sebagai sorotan kecil -->
+      <div class="sorotan-section mt-4">
+        <h4 class="sorotan-title">Sorotan Lain</h4>
         <div class="row g-4">
           <div class="col-12 col-md-6" v-for="cat in categoriesWithPosts" :key="cat.id">
             <h6 class="text-white mb-2">{{ cat.name }}</h6>
@@ -51,8 +53,8 @@
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
   </div>
 </template>
@@ -63,74 +65,64 @@ import PostCard from '@/components/PostCard.vue'
 
 export default {
   components: { PostCard },
+  props: ['slug'],
   data() {
     return {
-      posts: [],
-      headline: null,
-      gridItems: [],
+      category: null,
       popular: [],
       categoriesWithPosts: [],
-      meta: { page: 1, pages: 1, total: 0, limit: 10 },
     }
   },
   async mounted() {
-    await this.fetchPosts()
+    await this.fetchCategoryBySlug()
     await this.fetchPopular()
     await this.fetchCategoriesWithPosts()
   },
   watch: {
-    '$route.query.q': { handler: 'fetchPosts' },
-    '$route.query.page': { handler: 'fetchPosts' }
+    // jika user pindah slug, refetch
+    '$route.params.slug': 'fetchCategoryBySlug'
   },
   methods: {
-    async fetchPosts() {
-      this.loadingPosts = true
+    async fetchCategoryBySlug() {
+      const slug = this.$route.params.slug
+      if (!slug) return
       try {
-        const page = Math.max(1, parseInt(this.$route.query.page || '1', 10));
-        const limit = Math.min(50, parseInt(this.$route.query.limit || '10', 10));
-        const q = this.$route.query.q || undefined
-
-        const params = { page, limit }
-        if (q) params.q = q
-
-        const resp = await api.get('/posts', { params })
-        const items = resp.data.data || []
-        this.posts = items
-        this.meta = resp.data.meta || { page, limit, total: items.length, pages: 1 }
-        this.headline = this.posts[0] || null
-        this.gridItems = this.posts.slice(1, 7)
+        // gunakan endpoint /categories/posts yang mengembalikan categories dengan posts
+        const resp = await api.get('/categories/posts')
+        const cats = resp.data.data || resp.data || []
+        this.category = cats.find(c => (c.slug || '').toString() === slug.toString()) || null
       } catch (err) {
-        console.error('fetchPosts error', err)
-      } finally {
-        this.loadingPosts = false
+        console.error('fetchCategoryBySlug error', err)
+        this.category = null
       }
     },
-
     async fetchPopular() {
       try {
         const resp = await api.get('/posts/popular')
-        this.popular = resp.data.data || []
+        // dukung bentuk resp.data.data dan resp.data
+        this.popular = (resp.data && (resp.data.data || resp.data)) || []
       } catch (err) {
-        this.popular = (this.posts && this.posts.slice(0,5)) || []
+        console.error('fetchPopular error:', err)
+        // fallback: ambil post global terbaru (bukan kategori)
+        try {
+          const resp2 = await api.get('/posts', { params: { page: 1, limit: 5 } })
+          this.popular = (resp2.data && (resp2.data.data || resp2.data)) || []
+        } catch (err2) {
+          console.error('fallback latest posts failed:', err2)
+          this.popular = []
+        }
       }
     },
+
 
     async fetchCategoriesWithPosts() {
       try {
         const resp = await api.get('/categories/posts')
-        const cats = (resp.data.data || []).filter(cat => Array.isArray(cat.posts) && cat.posts.length > 0)
-        this.categoriesWithPosts = cats
+        this.categoriesWithPosts = (resp.data.data || resp.data || []).filter(c => Array.isArray(c.posts) && c.posts.length > 0)
       } catch (err) {
-        const map = {}
-        (this.posts || []).forEach(p => {
-          const catName = (p.category && p.category.name) || 'Lainnya'
-          if (!map[catName]) map[catName] = { id: catName, name: catName, posts: [] }
-          map[catName].posts.push(p)
-        })
-        this.categoriesWithPosts = Object.values(map).slice(0, 6)
+        this.categoriesWithPosts = []
       }
     },
-
     resolveImage(post) {
       if (!post) return '/placeholder-rect.png'
       const img = post.featured_image || post.image || (post.media && post.media.path) || post.media
@@ -140,15 +132,20 @@ export default {
       if (img.path) return `${api.defaults.baseURL}/${img.path.replace(/^\//, '')}`
       return '/placeholder-rect.png'
     },
-
     formatDate(v) {
       if (!v) return ''
       return new Date(v).toLocaleDateString()
+    }
+  },
+  computed: {
+    gridItems() {
+      if (!this.category || !this.category.posts) return []
+      return (this.category.posts || []).slice(1, 7)
     }
   }
 }
 </script>
 
 <style scoped>
-/* gaya lokal: minimal karena styling utama ada di src/assets/css/news-layout.css */
+/* minimal local style; global CSS sudah ada */
 </style>
